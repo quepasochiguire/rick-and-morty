@@ -16,6 +16,7 @@ declare class CharacterAppearance {
     getEnd(): string;
     getEpisodeId(): string;
     update(props: Partial<CharacterAppearanceProps>): void;
+    static create(props: CharacterAppearanceProps): CharacterAppearance;
     getSnapshot(): CharacterAppearanceProps;
 }
 export default CharacterAppearance;

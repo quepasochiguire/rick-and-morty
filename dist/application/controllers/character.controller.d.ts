@@ -33,9 +33,6 @@ export declare class CharacterController {
         episode: string[];
         image: string;
     }>;
-    updateCharacter(characterId: string, characterData: UpdateCharacterDto): Promise<{
-        success: boolean;
-    }>;
     suspendCharacter(characterId: string): Promise<{
         id: string;
         name: string;
@@ -45,5 +42,8 @@ export declare class CharacterController {
         gender: import("../../domain/models/character/character-gender.vo").CharacterGenderValue;
         episode: string[];
         image: string;
+    }>;
+    updateCharacter(characterId: string, characterData: UpdateCharacterDto): Promise<{
+        success: boolean;
     }>;
 }

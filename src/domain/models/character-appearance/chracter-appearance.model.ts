@@ -51,6 +51,10 @@ class CharacterAppearance {
     Object.assign(this, props);
   }
 
+  public static create(props: CharacterAppearanceProps): CharacterAppearance {
+    return new CharacterAppearance(props);
+  }
+
   public getSnapshot(): CharacterAppearanceProps {
     return {
       id: this.id,

@@ -39,14 +39,14 @@ let CharacterController = exports.CharacterController = class CharacterControlle
         const character = await createCharacterUsecase.execute(characterData);
         return character.getSnapshot();
     }
+    async suspendCharacter(characterId) {
+        const character = await this.characterService.suspend(characterId);
+        return character.getSnapshot();
+    }
     async updateCharacter(characterId, characterData) {
         const updateCharacterUsecase = new update_character_usecase_1.default(this.characterService);
         await updateCharacterUsecase.execute(characterId, characterData);
         return { success: true };
-    }
-    async suspendCharacter(characterId) {
-        const character = await this.characterService.suspend(characterId);
-        return character.getSnapshot();
     }
 };
 __decorate([
@@ -64,6 +64,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CharacterController.prototype, "createCharacter", null);
 __decorate([
+    (0, common_1.Patch)('/:id/suspend'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], CharacterController.prototype, "suspendCharacter", null);
+__decorate([
     (0, common_1.Patch)('/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -71,13 +78,6 @@ __decorate([
     __metadata("design:paramtypes", [String, update_character_dto_1.UpdateCharacterDto]),
     __metadata("design:returntype", Promise)
 ], CharacterController.prototype, "updateCharacter", null);
-__decorate([
-    (0, common_1.Patch)('/:id/suspend'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], CharacterController.prototype, "suspendCharacter", null);
 exports.CharacterController = CharacterController = __decorate([
     (0, common_1.Controller)('/api/characters'),
     __metadata("design:paramtypes", [character_service_1.CharacterService])

@@ -16,43 +16,74 @@ exports.CharacterAppearanceService = void 0;
 const common_1 = require("@nestjs/common");
 const Moment = require("moment");
 const moment_range_1 = require("moment-range");
+const paginated_model_1 = require("../../domain/paginated/paginated.model");
 const chracter_appearance_providers_1 = require("../../infrastructure/repositories/chracter-appearance/chracter-appearance.providers");
 const typeorm_1 = require("typeorm");
 const moment = (0, moment_range_1.extendMoment)(Moment);
 let CharacterAppearanceService = exports.CharacterAppearanceService = class CharacterAppearanceService {
-    constructor(episodeRepository) {
-        this.episodeRepository = episodeRepository;
+    constructor(characterAppearanceRepo) {
+        this.characterAppearanceRepo = characterAppearanceRepo;
     }
-    async getCharacterAppearances(characterId) {
-        const characterAppearances = await this.episodeRepository.find({
-            where: { characterId },
+    async get(id) {
+        const appearance = await this.characterAppearanceRepo.findOneOrFail({
+            where: {
+                id,
+            },
+        });
+        return appearance.toDomain();
+    }
+    async getAllCharacterAppearances(characterId, episodeId) {
+        const characterAppearances = await this.characterAppearanceRepo.find({
+            where: { characterId, episodeId },
         });
         return characterAppearances.map((c) => c.toDomain());
     }
+    async getCharacterAppearances(pagination, characterId, episodeId) {
+        const { page, limit } = pagination;
+        const where = { characterId };
+        if (episodeId)
+            Object.assign(where, { episodeId });
+        const characterAppearances = await this.characterAppearanceRepo.find({
+            where,
+            take: limit,
+            skip: (page - 1) * limit,
+        });
+        const total = await this.characterAppearanceRepo.count({
+            where,
+        });
+        return new paginated_model_1.default({
+            data: characterAppearances.map((c) => c.toDomain()),
+            total,
+            limit,
+            page,
+            next: page * limit < total ? page + 1 : null,
+            previous: page > 1 ? page - 1 : null,
+        });
+    }
     async save(characterAppearance) {
-        await this.validateIfPreviousAppearanceOverlaps(characterAppearance);
-        const characterAppearanceEntity = this.episodeRepository.create(characterAppearance.getSnapshot());
-        await this.episodeRepository.save(characterAppearanceEntity);
+        await this.validateIfPreviousAppearanceOverlaps(characterAppearance, characterAppearance.getEpisodeId());
+        const characterAppearanceEntity = this.characterAppearanceRepo.create(characterAppearance.getSnapshot());
+        await this.characterAppearanceRepo.save(characterAppearanceEntity);
     }
     async update(characterAppearance) {
-        await this.validateIfPreviousAppearanceOverlaps(characterAppearance);
-        await this.episodeRepository.update({ id: characterAppearance.getId() }, characterAppearance.getSnapshot());
+        await this.validateIfPreviousAppearanceOverlaps(characterAppearance, characterAppearance.getEpisodeId());
+        await this.characterAppearanceRepo.update({ id: characterAppearance.getId() }, characterAppearance.getSnapshot());
     }
     async delete(characterAppearance) {
-        const characterAppearanceEntity = await this.episodeRepository.findOneOrFail({
+        const characterAppearanceEntity = await this.characterAppearanceRepo.findOneOrFail({
             where: {
                 id: characterAppearance.getId(),
             },
         });
-        await this.episodeRepository.remove(characterAppearanceEntity);
+        await this.characterAppearanceRepo.remove(characterAppearanceEntity);
     }
-    async validateIfPreviousAppearanceOverlaps(characterAppearance) {
-        const previousCharacterAppearances = await this.getCharacterAppearances(characterAppearance.getCharacterId());
+    async validateIfPreviousAppearanceOverlaps(characterAppearance, episodeId) {
+        const previousCharacterAppearances = await this.getAllCharacterAppearances(characterAppearance.getCharacterId(), episodeId);
         const isOverlapping = previousCharacterAppearances.some((c) => {
             return this.overlaps(c, characterAppearance);
         });
         if (isOverlapping) {
-            throw new Error('Character appearance overlaps with another one');
+            throw new common_1.BadRequestException('Character appearance overlaps with another one');
         }
     }
     overlaps(characterAppearance, newCharacterAppearance) {

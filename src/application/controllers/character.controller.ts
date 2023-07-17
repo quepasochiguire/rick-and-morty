@@ -50,6 +50,12 @@ export class CharacterController {
     return character.getSnapshot();
   }
 
+  @Patch('/:id/suspend')
+  async suspendCharacter(@Param('id') characterId: string) {
+    const character = await this.characterService.suspend(characterId);
+    return character.getSnapshot();
+  }
+
   @Patch('/:id')
   async updateCharacter(
     @Param('id') characterId: string,
@@ -60,11 +66,5 @@ export class CharacterController {
     );
     await updateCharacterUsecase.execute(characterId, characterData);
     return { success: true };
-  }
-
-  @Patch('/:id/suspend')
-  async suspendCharacter(@Param('id') characterId: string) {
-    const character = await this.characterService.suspend(characterId);
-    return character.getSnapshot();
   }
 }

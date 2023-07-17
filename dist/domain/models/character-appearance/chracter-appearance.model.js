@@ -34,6 +34,9 @@ class CharacterAppearance {
     update(props) {
         Object.assign(this, props);
     }
+    static create(props) {
+        return new CharacterAppearance(props);
+    }
     getSnapshot() {
         return {
             id: this.id,
